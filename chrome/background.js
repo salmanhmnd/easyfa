@@ -1,0 +1,125 @@
+"use strict"
+
+chrome.browserAction.onClicked.addListener(function () {
+  convertFocusedText()
+})
+
+chrome.commands.onCommand.addListener(function (command) {
+  if (command == "convert-current-text") convertFocusedText()
+})
+
+// This event is fired each time the user updates the text in the omnibox,
+// as long as the extension's keyword mode is still active.
+chrome.omnibox.onInputChanged.addListener(function (text, suggest) {
+  console.log("inputChanged: " + text)
+  convert(text).then(function (val) {
+    suggest([{ content: val, description: "برو به " + val }])
+  })
+})
+
+// This event is fired with the user accepts the input in the omnibox.
+chrome.omnibox.onInputEntered.addListener(function (text) {
+  chrome.tabs.update({ url: "https://www.google.com/search?q=" + text })
+})
+
+class EasyFa {
+  constructor(latestMap) {
+    this.latestMap = latestMap
+  }
+  reloadCharMaps() {
+    var parts = this.latestMap.split("_DEL_")
+    var size = parts.length
+    this.mapfarsi = []
+    this.mapenglish = []
+    this.maplength = size
+    this.mapfarsi.length = size //allocate farsi
+    this.mapenglish.length = size //allocate english
+    var i = 0
+    for (i = 0; i < size; i++) {
+      this.mapfarsi[i] = parts[i].charAt(2)
+      this.mapenglish[i] = parts[i].charAt(0)
+      console.log("map created " + this.mapfarsi[i] + " to " + this.mapenglish[i])
+    }
+  }
+  isFarsi(source) {
+    var isfarsi = false
+    var i = 0
+    for (i = 0; i < this.maplength; i++)
+      if (source.charAt(0) == this.mapfarsi[i]) {
+        isfarsi = true
+        break
+      }
+    return isfarsi
+  }
+  map(x, source, dest) {
+    x = x.toLowerCase()
+    var d = x
+    var i = 0
+    while (i < this.maplength && x != source[i]) {
+      i++
+    }
+    if (i != this.maplength) d = dest[i]
+    return d
+  }
+  transform(s, source, dest) {
+    var temp = ""
+    var i
+    for (i = 0; i < s.length; i++) temp = temp + this.map(s.charAt(i), source, dest)
+    return temp
+  }
+  convert(s) {
+    var result = s
+    if (this.isFarsi(s)) {
+      result = this.transform(s, this.mapfarsi, this.mapenglish)
+    } else {
+      result = this.transform(s, this.mapenglish, this.mapfarsi)
+    }
+    return result
+  }
+}
+
+function convert(source) {
+  return reloadMap().then(function (latestMap) {
+    let easyfa = new EasyFa(latestMap)
+    easyfa.reloadCharMaps()
+    return easyfa.convert(source)
+  })
+}
+
+function convertFocusedText() {
+  chrome.tabs.executeScript(
+    null,
+    {
+      code: "document.activeElement.value;",
+    },
+    function (activeElement) {
+      if (activeElement[0]) {
+        let currentTypedValue = activeElement[0]
+        convert(currentTypedValue).then(function (val) {
+          console.log(val)
+          let commandForTargetValue = 'document.activeElement.value = "' + val + '";'
+          chrome.tabs.executeScript(null, {
+            code: commandForTargetValue,
+          })
+        })
+      } else {
+        console.log("No active element on the page")
+      }
+    }
+  )
+}
+
+function reloadMap() {
+  var defaultMap = "q ض_DEL_w ص_DEL_e ث_DEL_r ق_DEL_t ف_DEL_y غ_DEL_u ع_DEL_i ه_DEL_o خ_DEL_p ح_DEL_[ ج_DEL_] چ_DEL_a ش_DEL_s س_DEL_d ی_DEL_f ب_DEL_g ل_DEL_h ا_DEL_j ت_DEL_k ن_DEL_l م_DEL_; ک_DEL_' گ_DEL_\\ پ_DEL_z ظ_DEL_x ط_DEL_c ز_DEL_v ر_DEL_b ذ_DEL_n د_DEL_m ئ_DEL_, و_DEL_. ._DEL_/ /"
+  var p = new Promise(function (resolve, reject) {
+    chrome.storage.sync.get(["charMapStr"], function (charMap) {
+      if (charMap.charMapStr) {
+        resolve(charMap.charMapStr)
+      } else {
+        chrome.storage.sync.set({ charMapStr: defaultMap }, function () {})
+        resolve(defaultMap)
+      }
+    })
+  })
+  return p
+}
