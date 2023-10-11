@@ -5,6 +5,7 @@
   "description": "Corrects Farsi sentences typed with English keyboard.",
   "icons": {
     "16": "easyFa-16x16.png",
+    "48": "easyFa-48x48.png",
     "128": "easyFa-128x128.png"
   },
   "background": {
