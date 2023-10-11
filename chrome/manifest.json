@@ -1,20 +1,19 @@
 {
-  "manifest_version": 2,
+  "manifest_version": 3,
   "name": "EasyFa",
-  "version": "2.0",
+  "version": "3.0",
   "description": "Corrects Farsi sentences typed with English keyboard.",
   "icons": {
-    "16": "easyFa-16x16.png"
+    "16": "easyFa-16x16.png",
+    "128": "easyFa-128x128.png"
   },
   "background": {
-    "scripts": ["background.js"],
-    "persistent": false
+    "service_worker": "background.js"
   },
   "omnibox": { "keyword": "." },
-  "permissions": ["activeTab", "<all_urls>", "storage"],
-  "browser_action": {
-    "default_icon": "easyFa-16x16.png"
-  },
+  "host_permissions": ["*://*/*"],
+  "permissions": ["activeTab", "storage", "scripting"],
+  "action": {},
   "commands": {
     "convert-current-text": {
       "suggested_key": {

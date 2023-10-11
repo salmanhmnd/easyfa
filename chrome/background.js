@@ -1,11 +1,17 @@
+/**
+ * https://github.com/salmanhmnd/easyfa
+ * Salman Hooshmand | https://twitter.com/yetatc
+ * Nabi KAZ | https://twitter.com/NabiKAZ
+ */
+
 "use strict"
 
-chrome.browserAction.onClicked.addListener(function () {
-  convertFocusedText()
+chrome.action.onClicked.addListener(function (tab) {
+  convertFocusedText(tab)
 })
 
-chrome.commands.onCommand.addListener(function (command) {
-  if (command == "convert-current-text") convertFocusedText()
+chrome.commands.onCommand.addListener(function (command, tab) {
+  if (command == "convert-current-text") convertFocusedText(tab)
 })
 
 // This event is fired each time the user updates the text in the omnibox,
@@ -86,27 +92,31 @@ function convert(source) {
   })
 }
 
-function convertFocusedText() {
-  chrome.tabs.executeScript(
-    null,
-    {
-      code: "document.activeElement.value;",
+function convertFocusedText(tab) {
+  chrome.scripting.executeScript({
+    target: { tabId: tab.id },
+    func : () => {
+      return document.activeElement.value;
     },
-    function (activeElement) {
-      if (activeElement[0]) {
-        let currentTypedValue = activeElement[0]
+  }, (activeElement) => {
+      if (activeElement && activeElement[0] && activeElement[0].result) {
+        let currentTypedValue = activeElement[0].result
+        console.log("currentTypedValue:", currentTypedValue)
         convert(currentTypedValue).then(function (val) {
-          console.log(val)
-          let commandForTargetValue = 'document.activeElement.value = "' + val + '";'
-          chrome.tabs.executeScript(null, {
-            code: commandForTargetValue,
-          })
+          console.log("converted:", val)
+          chrome.scripting.executeScript({
+            target: { tabId: tab.id },
+            func: (command) => {
+              document.activeElement.value = command;
+            },
+            args: [val],
+          });
+
         })
       } else {
         console.log("No active element on the page")
       }
-    }
-  )
+  });
 }
 
 function reloadMap() {
