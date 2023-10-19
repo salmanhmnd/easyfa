@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "EasyFa",
-  "version": "3.0",
+  "version": "3.1",
   "description": "Corrects Farsi sentences typed with English keyboard.",
   "icons": {
     "16": "easyFa-16x16.png",
