@@ -14,20 +14,6 @@ chrome.commands.onCommand.addListener(function (command, tab) {
   if (command == "convert-current-text") convertFocusedText(tab)
 })
 
-// This event is fired each time the user updates the text in the omnibox,
-// as long as the extension's keyword mode is still active.
-chrome.omnibox.onInputChanged.addListener(function (text, suggest) {
-  console.log("inputChanged: " + text)
-  convert(text).then(function (val) {
-    suggest([{ content: val, description: "برو به " + val }])
-  })
-})
-
-// This event is fired with the user accepts the input in the omnibox.
-chrome.omnibox.onInputEntered.addListener(function (text) {
-  chrome.tabs.update({ url: "https://www.google.com/search?q=" + text })
-})
-
 class EasyFa {
   constructor(latestMap) {
     this.latestMap = latestMap
