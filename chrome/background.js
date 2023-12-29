@@ -6,6 +6,18 @@
 
 "use strict"
 
+chrome.contextMenus.create({
+  title: 'Easyfa',
+  id: 'easyfa-convert-selected-text',
+  contexts: ["all"]
+});
+
+chrome.contextMenus.onClicked.addListener(function (info,tab) {
+  if (info.menuItemId == 'easyfa-convert-selected-text') {
+    console.log(info.selectionText)
+  }
+})
+
 chrome.action.onClicked.addListener(function (tab) {
   convertFocusedText(tab)
 })
@@ -79,9 +91,11 @@ function convert(source) {
 }
 
 function convertFocusedText(tab) {
+  console.log(tab.url)
   chrome.scripting.executeScript({
     target: { tabId: tab.id },
     func : () => {
+      console.log("Hi")
       return document.activeElement.value;
     },
   }, (activeElement) => {

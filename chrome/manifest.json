@@ -12,7 +12,7 @@
     "service_worker": "background.js"
   },
   "host_permissions": ["*://*/*"],
-  "permissions": ["activeTab", "storage", "scripting"],
+  "permissions": ["activeTab", "storage", "scripting","contextMenus"],
   "action": {},
   "commands": {
     "convert-current-text": {
